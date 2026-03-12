@@ -1,8 +1,9 @@
 const express = require("express");
 const app = express();
+const PORT = 3000;
 
 app.get("/", (req, res) => {
-  res.send("Hello from Express");
+  res.send("Hi there, Welcome to Akorede server");
 });
 
 app.get("/about", (req, res) => {
@@ -32,6 +33,6 @@ app.get('/message', (req, res) => {
   res.json({message: 'Hello from korede server'})
 })
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+app.listen(PORT, () => {
+  console.log(`Server is running on port`,PORT);
 });
