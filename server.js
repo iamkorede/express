@@ -1,38 +1,35 @@
-const express = require("express");
-const app = express();
-const PORT = 3000;
+const express = require("express")
+const app = express()
+const PORT = 3001
 
-app.get("/", (req, res) => {
-  res.send("Hi there, Welcome to Akorede server");
-});
+app.get('/', (req,res) => {
+  res.send("Hi there, Welcome to my Server.")
+})
 
-app.get("/about", (req, res) => {
-  res.send("This is the About page.");
-});
+app.get('/korede', (req, res) => {
+  res.send("Here is my personal blog page")
+})
 
-app.get("/product", (req, res) => {
-  res.send([
-    { id: 1, name: "laptop", Price: 2000 },
-    { id: 2, name: "mouse", Price: 1000 },
-  ]);
-});
+app.get('/products', (req, res) => {
+  res.json([
+    { id: 1, name: 'Laptop', price: 2500},
+    { id: 2, name: 'Bag', price: 1000}
+  ])
+})
 
-app.get("/product/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const product = [
-    { id: 1, name: "laptop", Price: 2000 },
-    { id: 2, name: "mouse", Price: 1000 },
-  ];
-
-  const requestedProduct = product.find((product) => product.id === id)
+app.get('/products/:id', (req, res) => {
+  const id = Number(req.params.id)
+  
+  const products = [
+    { id: 1, name: 'Laptop', price: 2500 },
+    { id: 2, name: 'Bag', price: 1000 },
+    { id: 3, name: 'mouse', price: 500}
+  ]
+  
+  const requestedProduct = products.find((product) => product.id === id)
   res.json(requestedProduct)
-});
-
-app.get('/message', (req, res) => {
-  res.json({message: 'Hello from korede server'})
 })
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port`,PORT);
-});
+  console.log(`Server is running at Port ${PORT}.`)
+})
