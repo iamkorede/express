@@ -1,35 +1,18 @@
-const express = require("express");
-const app = express();
-const PORT = 3001;
-
-app.get("/", (req, res) => {
-  res.send("Hi there, Welcome to my Server.");
-});
-
-app.get("/korede", (req, res) => {
-  res.send("Here is my personal blog page");
-});
-
-app.get("/products", (req, res) => {
-  res.json([
-    { id: 1, name: "Laptop", price: 2500 },
-    { id: 2, name: "Bag", price: 1000 },
-  ]);
-});
-
-app.get("/products/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const products = [
-    { id: 1, name: "Laptop", price: 2500 },
-    { id: 2, name: "Bag", price: 1000 },
-    { id: 3, name: "mouse", price: 500 },
-  ];
-
-  const requestedProduct = products.find((product) => product.id === id);
-  res.json(requestedProduct);
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running at Port ${PORT}.`);
-});
+var http = require("http");
+var fs = require("fs");
+function send404(response) {
+  response.writeHead(404, { "Content-Type": "text/plain" });
+  response.write("Error 404: Resource not found.");
+  response.end();
+}
+var server = http
+  .createServer(function (req, res) {
+    if (req.method == "GET" && req.url == "/") {
+      res.writeHead(200, { "content-type": "text/html" });
+      fs.createReadStream("./index.html").pipe(res);
+    } else {
+      send404(res);
+    }
+  })
+  .listen(3000);
+console.log("server running on port 3000");
