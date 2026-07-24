@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Manager</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f8;
+    color: #1a1a1a;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  form {
+    background: #fff;
+    border: 1px solid #e2e5e9;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+
+  label:first-child { margin-top: 0; }
+
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d4d8dd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #3b6fe0;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 11px;
+    background: #3b6fe0;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  button:hover { background: #2f5cc0; }
+  button:disabled { background: #9aacd6; cursor: not-allowed; }
+
+  #status {
+    font-size: 0.85rem;
+    margin-top: 10px;
+    min-height: 18px;
+  }
+
+  #status.error { color: #d0342c; }
+  #status.success { color: #1a7f37; }
+
+  .list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .list-header h2 {
+    font-size: 1.05rem;
+  }
+
+  .list-header button {
+    width: auto;
+    margin: 0;
+    padding: 6px 12px;
+    background: #fff;
+    color: #3b6fe0;
+    border: 1px solid #3b6fe0;
+    font-size: 0.8rem;
+  }
+
+  .list-header button:hover {
+    background: #eef2fd;
+  }
+
+  ul#userList {
+    list-style: none;
+  }
+
+  .user-card {
+    background: #fff;
+    border: 1px solid #e2e5e9;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+
+  .user-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .user-email {
+    color: #555;
+    font-size: 0.85rem;
+    margin-top: 2px;
+  }
+
+  .user-date {
+    color: #999;
+    font-size: 0.75rem;
+    margin-top: 6px;
+  }
+
+  .empty-state {
+    color: #888;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 30px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>User Manager</h1>
+  <p class="subtitle">Frontend for your Express + MongoDB API</p>
+
+  <form id="userForm">
+    <label for="name">Name</label>
+    <input type="text" id="name" required placeholder="e.g. Akorede Adekanbi">
+
+    <label for="email">Email</label>
+    <input type="email" id="email" required placeholder="e.g. akorede@example.com">
+
+    <button type="submit" id="submitBtn">Add User</button>
+    <div id="status"></div>
+  </form>
+
+  <div class="list-header">
+    <h2>All Users</h2>
+    <button id="refreshBtn">Refresh</button>
+  </div>
+
+  <ul id="userList"></ul>
+</div>
+
+<script>
+  // Change this if your backend runs somewhere else
+  const API_BASE = 'http://localhost:3000/api/users';
+
+  const form = document.getElementById('userForm');
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('status');
+  const userList = document.getElementById('userList');
+  const refreshBtn = document.getElementById('refreshBtn');
+
+  function setStatus(message, type) {
+    statusEl.textContent = message;
+    statusEl.className = type || '';
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  async function fetchUsers() {
+    userList.innerHTML = '<li class="empty-state">Loading users...</li>';
+    try {
+      const res = await fetch(API_BASE);
+      if (!res.ok) throw new Error('Failed to fetch users');
+      const users = await res.json();
+      renderUsers(users);
+    } catch (err) {
+      userList.innerHTML = `<li class="empty-state">Could not load users. Is your server running on port 3000?</li>`;
+    }
+  }
+
+  function renderUsers(users) {
+    if (!users.length) {
+      userList.innerHTML = '<li class="empty-state">No users yet. Add one above.</li>';
+      return;
+    }
+    userList.innerHTML = users
+      .slice()
+      .reverse()
+      .map(user => `
+        <li class="user-card">
+          <div class="user-name">${escapeHtml(user.name)}</div>
+          <div class="user-email">${escapeHtml(user.email)}</div>
+          <div class="user-date">Added ${formatDate(user.createdAt)}</div>
+        </li>
+      `).join('');
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    setStatus('Saving...', '');
+
+    try {
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: nameInput.value.trim(),
+          email: emailInput.value.trim()
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Something went wrong');
+      }
+
+      setStatus('User added successfully!', 'success');
+      form.reset();
+      fetchUsers();
+    } catch (err) {
+      setStatus(err.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  refreshBtn.addEventListener('click', fetchUsers);
+
+  // Load users on page load
+  fetchUsers();
+</script>
+
+</body>
+</html>
