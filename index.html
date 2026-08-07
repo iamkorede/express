@@ -137,6 +137,12 @@
     margin-top: 2px;
   }
 
+  .user-id {
+    font-size: 0.75rem;
+    color: #777;
+    margin-bottom: 4px;
+    word-break: break-all;
+  }
   .user-date {
     color: #999;
     font-size: 0.75rem;
@@ -218,10 +224,11 @@
       .slice()
       .reverse()
       .map(user => `
-        <li class="user-card">
-          <div class="user-name">${escapeHtml(user.name)}</div>
-          <div class="user-email">${escapeHtml(user.email)}</div>
-          <div class="user-date">Added ${formatDate(user.createdAt)}</div>
+        <li class='user-card'>
+          <div class='user-id'><strong>ID:</strong> ${escapeHtml(user._id)}</div>
+          <div class='user-name'>${escapeHtml(user.name)}</div>
+          <div class='user-email'>${escapeHtml(user.email)}</div>
+          <div class='user-date'>Added ${formatDate(user.createdAt)}</div>
         </li>
       `).join('');
   }
